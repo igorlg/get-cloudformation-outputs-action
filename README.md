@@ -98,6 +98,37 @@ npm run all        # everything (format, typecheck, test, build)
 bundled output, without installing dependencies on the runner. CI verifies
 `dist/` is in sync with source on every PR.
 
+## Releases
+
+This repo uses [release-please](https://github.com/googleapis/release-please)
+driven by [conventional commits](https://www.conventionalcommits.org/).
+
+**Flow:**
+
+1. Open a PR. Use a conventional commit title, e.g.
+   `feat: support stack ARNs`, `fix: handle throttling`, `docs: ...`.
+2. Merge the PR to `main`. The `release-please` workflow updates (or opens) a
+   running **release PR** that accumulates the changelog and bumps the version
+   per semver rules.
+3. When you're ready to release, merge the release PR. That triggers:
+   - A new tag (e.g. `v1.2.0`) and GitHub Release with generated notes
+   - The `post-release` job: rebuild, verify `dist/` clean, run tests,
+     force-roll the `v<major>` tag to the same SHA
+
+**Commit types** that drive version bumps:
+
+| Prefix                                  | Bump  | Appears in changelog |
+| --------------------------------------- | ----- | -------------------- |
+| `feat:`                                 | minor | yes (Features)       |
+| `fix:`                                  | patch | yes (Bug Fixes)      |
+| `perf:`                                 | patch | yes (Performance)    |
+| `deps:`                                 | patch | yes (Dependencies)   |
+| `refactor:`                             | patch | yes (Refactoring)    |
+| `feat!:` / `BREAKING CHANGE:`           | major | yes                  |
+| `docs:`/`chore:`/`test:`/`ci:`/`build:` | none  | hidden               |
+
+Users pin to `@v1` for rolling updates, or `@v1.2.0` for an exact version.
+
 ## License
 
 MIT
