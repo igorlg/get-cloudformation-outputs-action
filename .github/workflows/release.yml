@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Verify package.json version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Verify dist/ is in sync
+        run: |
+          npm run build
+          if ! git diff --exit-code --stat dist/; then
+            echo "::error::dist/ is stale for this tag. Build locally and re-tag."
+            exit 1
+          fi
+
+      - name: Run tests
+        run: npm test
+
+      - name: Extract major version
+        id: major
+        run: |
+          MAJOR=$(echo "$GITHUB_REF_NAME" | sed -E 's/^v([0-9]+).*/v\1/')
+          echo "tag=$MAJOR" >> "$GITHUB_OUTPUT"
+
+      - name: Roll major version tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MAJOR="${{ steps.major.outputs.tag }}"
+          git tag -f "$MAJOR" "$GITHUB_SHA"
+          git push origin "refs/tags/$MAJOR" --force
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME"

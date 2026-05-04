@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure dist/ is in sync
+        run: |
+          if ! git diff --exit-code --stat dist/; then
+            echo "::error::dist/ is stale. Run 'npm run build' and commit the result."
+            exit 1
+          fi
+
+  smoke:
+    # Exercises the action locally against a real stack in a test AWS account.
+    # Disabled by default — enable when you wire up OIDC + a known test stack.
+    if: false
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GithubActionsSmokeRole
+          aws-region: ap-southeast-2
+
+      - id: cfn
+        uses: ./
+        with:
+          stack-name: smoke-test-stack
+
+      - name: Assert outputs
+        run: |
+          echo 'Aggregate: ${{ steps.cfn.outputs.outputs }}'

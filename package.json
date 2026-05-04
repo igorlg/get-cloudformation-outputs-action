@@ -1,0 +1,41 @@
+{
+  "name": "get-cloudformation-outputs-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action to retrieve CloudFormation Stack Outputs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --minify --sourcemap --legal-comments=external",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "all": "npm run format:check && npm run typecheck && npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/igorlg/get-cloudformation-outputs-action.git"
+  },
+  "keywords": [
+    "github-action",
+    "aws",
+    "cloudformation"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@aws-sdk/client-cloudformation": "^3.700.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "aws-sdk-client-mock": "^4.1.0",
+    "esbuild": "^0.28.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.5"
+  }
+}
