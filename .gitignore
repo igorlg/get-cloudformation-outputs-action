@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build artifacts (note: dist/ IS committed for GHA — see README)
+lib/
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+.vitest/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Env
+.env
+.env.local

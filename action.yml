@@ -1,0 +1,38 @@
+name: 'Get CloudFormation Outputs'
+description: 'Fetch outputs from an AWS CloudFormation stack and expose them as step outputs.'
+author: 'Igor Gentil'
+branding:
+  icon: 'layers'
+  color: 'orange'
+
+inputs:
+  stack-name:
+    description: 'Name (or ARN) of the CloudFormation stack to read outputs from.'
+    required: true
+  region:
+    description: >-
+      AWS region the stack lives in. Falls back to AWS_REGION then
+      AWS_DEFAULT_REGION env vars if omitted.
+    required: false
+  outputs:
+    description: >-
+      Comma- or newline-separated list of output keys to expose. When empty,
+      every output on the stack is exposed. Keys are case-sensitive.
+    required: false
+  fail-on-missing:
+    description: >-
+      When "true" (default), the action fails if any requested output key is
+      absent from the stack. When "false", missing keys are silently skipped.
+    required: false
+    default: 'true'
+
+outputs:
+  outputs:
+    description: >-
+      JSON-encoded object mapping every fetched output key to its value.
+      Individual outputs are ALSO exposed as top-level step outputs, e.g.
+      `${{ steps.x.outputs.ApiUrl }}`.
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
